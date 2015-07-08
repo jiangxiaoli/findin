@@ -16,7 +16,7 @@ decorator
 infinity
 intervals
 itsdangerous
-marshmallow
+marshmallow==1.2.6
 py-bcrypt
 pytz
 six

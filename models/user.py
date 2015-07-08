@@ -19,8 +19,6 @@ class User(db.Model):
   create_time = db.Column(db.DateTime, default=db.func.now())
   update_time = db.Column(db.DateTime)
 
-  posts = db.relationship('Post', backref='user', lazy='dynamic')
-
   def __init__(self, first_name, last_name, linkedin_id, headline, linkedin_profile_url,
                picture_url, profile, access_token):
     self.first_name = first_name

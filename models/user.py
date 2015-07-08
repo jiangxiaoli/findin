@@ -54,7 +54,7 @@ class Tag(db.Model):
       return '<Tag %r>' % (self.name, self.category)
 
 
-class Post(db.Model):
+class TagUser(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   user_id = db.Column(db.Integer, ForeignKey('user.id'))

@@ -15,7 +15,7 @@ class UserView(Resource):
       return UserProfileSerializer(user).data
 
     else:
-      return error_serializers('Unknow user!', 400), 400
+      return error_serializers('Unknown user!', 400), 400
 
 
-api.add_resource(UserView, '/user/<int:id>/linkedin_profile')
+api.add_resource(UserView, '/users/<int:id>/linkedin_profile')

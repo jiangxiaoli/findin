@@ -1,5 +1,5 @@
 from models.user import User
-from serializers.serializers import UserSerializer
+from serializers.user_serializers import UserSerializer
 from flask_restful import Resource
 from server import api
 

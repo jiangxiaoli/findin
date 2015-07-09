@@ -2,9 +2,9 @@ __author__ = 'FindIn'
 
 from marshmallow import Serializer, fields
 
-class UserSerializer(Serializer):
+class UserProfileSerializer(Serializer):
   class Meta:
-    fields = ("id", "profile")
+    fields = ("profile",)
 
 
 class TagSerializer(Serializer):
@@ -13,7 +13,7 @@ class TagSerializer(Serializer):
 
 
 class UserTagSerializer(Serializer):
-  user = fields.Nested(UserSerializer)
+  user = fields.Nested(UserProfileSerializer)
   tag = fields.Nested(TagSerializer)
 
   class Meta:

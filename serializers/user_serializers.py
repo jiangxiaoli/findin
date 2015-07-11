@@ -4,7 +4,7 @@ from marshmallow import Serializer, fields
 
 class UserProfileSerializer(Serializer):
   class Meta:
-    fields = ("profile",)
+    fields = ("id", "profile")
 
 
 class TagSerializer(Serializer):

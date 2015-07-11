@@ -35,3 +35,4 @@ def after_request(response):
     return response
 
 import views.user_view
+import views.user_action_view

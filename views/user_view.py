@@ -1,15 +1,10 @@
-import urllib2
-from flask import json
+from flask import json, session
 from flask.ext.restful import reqparse
 from models.user import User
 from serializers.simgle_general_serializers import error_serializers
-from serializers.user_serializers import UserProfileSerializer
+from serializers.user_serializers import UserSerializer
 from flask_restful import Resource
 from server import api, db
-
-REQUEST_URL = 'https://api.linkedin.com/v1/people/~:' \
-              '(id,first-name,last-name,headline,skills,educations,positions,picture-url,siteStandardProfileRequest)' \
-              '?oauth2_access_token=%s&format=json'
 
 class UserView(Resource):
 
@@ -18,13 +13,23 @@ class UserView(Resource):
     user = User.query.filter_by(id=id).first()
 
     if user:
-      return UserProfileSerializer(user).data
+      return UserSerializer(user).data
 
     else:
       return error_serializers('Unknown user!', 400), 400
 
 parser = reqparse.RequestParser()
-parser.add_argument('access_token', type=str)
+parser.add_argument('linkedinId', type=str)
+parser.add_argument('firstName', type=str)
+parser.add_argument('headline', type=str)
+parser.add_argument('industry', type=str)
+parser.add_argument('lastName', type=str)
+parser.add_argument('numCollections', type=int)
+parser.add_argument('location', type=str)
+parser.add_argument('pictureUrl', type=str)
+parser.add_argument('positions', type=str)
+parser.add_argument('publicProfileUrl', type=str)
+parser.add_argument('summary', type=str)
 
 class UserAddView(Resource):
 
@@ -32,63 +37,48 @@ class UserAddView(Resource):
 
     args = parser.parse_args()
 
-    if not args['access_token']:
-      return error_serializers('Unknown params!', 400), 400
-
-    # Request linkedin profile according access_token
-    profile = request_linkedin_user_content(args['access_token'])
+    if not args['firstName'] or not args['lastName'] or not args['linkedinId']:
+      return error_serializers('Params Error!', 400), 400
 
     # Add user or update user in our database
-    if(profile):
-      user = add_or_update_user(profile, args['access_token'])
+    user = add_or_update_user(args)
 
-      if user:
-        return UserProfileSerializer(user).data
+    if user:
+      return UserSerializer(user).data
 
-      else:
-        return error_serializers('Error token!', 401), 401
     else:
       return error_serializers('Error token!', 401), 401
 
 
-def add_or_update_user(profile, access_token):
+def add_or_update_user(user_params):
 
-  profile_map = json.loads(profile)
-  user = User.query.filter_by(linkedin_id=profile_map['id']).first()
+  query = User.query.filter_by(linkedin_id=user_params['linkedinId'])
 
-  if user:
+  if query.first():
     # Update
-    user = User.query.filter_by(id=user.id).scalar()
-    user.first_name = profile_map['firstName']
-    user.last_name = profile_map['lastName']
-    user.headline = profile_map['headline']
-    user.linkedin_profile_url = '' if not profile_map['siteStandardProfileRequest'] else profile_map['siteStandardProfileRequest']['url']
-    user.picture_url = profile_map['pictureUrl']
-    user.profile = profile
-    user.access_token = access_token
+    user = query.scalar()
+    user.first_name = user_params['firstName']
+    user.last_name = user_params['lastName']
+    user.linkedin_id = user_params['linkedinId']
+    user.headline = user_params['headline']
+    user.industry = user_params['industry']
+    user.location = user_params['location']
+    user.positions = user_params['positions']
+    user.summary = user_params['summary']
+    user.num_collections = user_params['numCollections']
+    user.public_profile_url = user_params['publicProfileUrl']
+    user.picture_url = user_params['pictureUrl']
 
   else:
     # Add
-    user = User(profile_map['firstName'], profile_map['lastName'], profile_map['id'], profile_map['headline'],
-               '' if not profile_map['siteStandardProfileRequest'] else profile_map['siteStandardProfileRequest']['url'],
-                profile_map['pictureUrl'], profile, access_token)
+    user = User(user_params['firstName'], user_params['lastName'], user_params['linkedinId'], user_params['headline'],
+                user_params['industry'], user_params['location'], user_params['positions'], user_params['summary'],
+                user_params['numCollections'], user_params['publicProfileUrl'], user_params['pictureUrl'])
     db.session.add(user)
 
   db.session.commit()
 
   return user
-
-def request_linkedin_user_content(access_token):
-
-  headers = {'User-Agent':'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
-
-  try:
-    req = urllib2.Request(REQUEST_URL % access_token, headers=headers)
-    return unicode(urllib2.urlopen(req, timeout=20).read(), 'utf-8')
-
-  except Exception, e:
-    print 'http request_linkedin_user_content error: ', access_token, e
-    return None
 
 
 api.add_resource(UserAddView, '/users')

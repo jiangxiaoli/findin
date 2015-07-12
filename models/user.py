@@ -14,7 +14,7 @@ class User(db.Model):
   headline = db.Column(db.String(128))
   industry = db.Column(db.String(128))
   location = db.Column(db.String(128))
-  positions = db.Column(db.text())
+  positions = db.Column(db.Text())
   summary = db.Column(db.String(512))
   num_collections = db.Column(db.Integer)
   public_profile_url = db.Column(db.String(256))
@@ -37,7 +37,7 @@ class User(db.Model):
     self.public_profile_url = public_profile_url
 
   def __repr__(self):
-      return '<User %r>' % self.profile
+      return '<User %r>' % self.linkedin_id
 
 
 class Tag(db.Model):

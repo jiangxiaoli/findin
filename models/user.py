@@ -49,24 +49,24 @@ class Tag(db.Model):
   create_time = db.Column(db.DateTime, default=db.func.now())
   update_time = db.Column(db.DateTime)
 
-  def __init__(self, name):
-    self.parent_id = g.tag.id
-    self.category = g.tag.name
+  def __init__(self, parent_id, category, name):
+    self.parent_id = parent_id
+    self.category = category
     self.name = name
 
   def __repr__(self):
       return '<Tag %r>' % (self.name, self.category)
 
 
-class TagUser(db.Model):
+class UserTag(db.Model):
 
   id = db.Column(db.Integer, primary_key=True, autoincrement=1)
   user_id = db.Column(db.Integer, ForeignKey('user.id'))
   tag_id = db.Column(db.Integer, ForeignKey('tag.id'))
 
-  def __init__(self):
-    self.user_id = g.user.id
-    self.tag_id = g.tag.id
+  def __init__(self, user_id, tag_id):
+    self.user_id = user_id
+    self.tag_id = tag_id
 
   def __repr__(self):
       return '<Tag %r>' % (self.user_id, self.tag_id)

@@ -1,6 +1,8 @@
-from flask import json, session
+from aetypes import Enum
+from flask import json
 from flask.ext.restful import reqparse
-from models.user import User
+import time
+from models.user import User, Tag, UserTag
 from serializers.simgle_general_serializers import error_serializers
 from serializers.user_serializers import UserSerializer
 from flask_restful import Resource
@@ -24,12 +26,13 @@ parser.add_argument('firstName', type=str)
 parser.add_argument('headline', type=str)
 parser.add_argument('industry', type=str)
 parser.add_argument('lastName', type=str)
-parser.add_argument('numCollections', type=int)
+parser.add_argument('numberOfConnections', type=int)
 parser.add_argument('location', type=str)
 parser.add_argument('pictureUrl', type=str)
 parser.add_argument('positions', type=str)
 parser.add_argument('publicProfileUrl', type=str)
 parser.add_argument('summary', type=str)
+
 
 class UserAddView(Resource):
 
@@ -42,6 +45,9 @@ class UserAddView(Resource):
 
     # Add user or update user in our database
     user = add_or_update_user(args)
+
+    # Analysis user tags
+    analysis_tags(user.id, args)
 
     if user:
       return UserSerializer(user).data
@@ -65,20 +71,64 @@ def add_or_update_user(user_params):
     user.location = user_params['location']
     user.positions = user_params['positions']
     user.summary = user_params['summary']
-    user.num_collections = user_params['numCollections']
+    user.num_collections = user_params['numberOfConnections']
     user.public_profile_url = user_params['publicProfileUrl']
     user.picture_url = user_params['pictureUrl']
+    user.update_time = time.strftime("%Y-%m-%d %X", time.localtime())
 
   else:
     # Add
     user = User(user_params['firstName'], user_params['lastName'], user_params['linkedinId'], user_params['headline'],
                 user_params['industry'], user_params['location'], user_params['positions'], user_params['summary'],
-                user_params['numCollections'], user_params['publicProfileUrl'], user_params['pictureUrl'])
+                user_params['numberOfConnections'], user_params['publicProfileUrl'], user_params['pictureUrl'])
     db.session.add(user)
 
   db.session.commit()
 
   return user
+
+
+def analysis_tags(user_id, params):
+
+  if params["industry"]:
+    analysis_a_tag(user_id, "industry", params["industry"])
+
+  if params["positions"]:
+    positions = json.loads(params["positions"])
+    if positions:
+      for position in positions:
+
+        if position["company"]:
+          analysis_a_tag(user_id, "company", position["company"])
+
+        if position["title"]:
+          analysis_a_tag(user_id, "title", position["title"])
+
+
+def analysis_a_tag(user_id, tag_category, tag_name):
+
+  parent_tag = Tag.query.filter_by(name=tag_category).first()
+
+  if not parent_tag:
+    parent_tag = Tag(None, None, tag_category)
+    db.session.add(parent_tag)
+    db.session.commit()
+
+  tag_query = Tag.query.filter_by(name=tag_name)
+
+  if tag_query.first():
+    tag = tag_query.first()
+
+  else:
+    tag = Tag(parent_tag.id, parent_tag.name, tag_name)
+    db.session.add(tag)
+    db.session.commit()
+
+  tag_user_query = UserTag.query.filter_by(user_id=user_id, tag_id=tag.id)
+
+  if not tag_user_query.first():
+    db.session.add(UserTag(user_id, tag.id))
+    db.session.commit()
 
 
 api.add_resource(UserAddView, '/users')

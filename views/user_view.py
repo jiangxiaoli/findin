@@ -31,6 +31,7 @@ parser.add_argument('pictureUrl', type=str)
 parser.add_argument('positions', type=str)
 parser.add_argument('publicProfileUrl', type=str)
 parser.add_argument('summary', type=str)
+parser.add_argument('deviceId', type=str)
 
 
 class UserAddView(Resource):
@@ -73,6 +74,7 @@ def add_or_update_user(user_params):
     user.num_collections = user_params['numberOfConnections']
     user.public_profile_url = user_params['publicProfileUrl']
     user.picture_url = user_params['pictureUrl']
+    user.device_id = user_params['deviceId']
     user.update_time = time.strftime("%Y-%m-%d %X", time.localtime())
 
   else:
@@ -94,6 +96,7 @@ def analysis_tags(user_id, params):
 
   # if params["positions"]:
   #   positions = json.loads(params["positions"])
+  #   print positions
   #   if positions:
   #     for position in positions:
   #

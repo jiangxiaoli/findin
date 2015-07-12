@@ -16,6 +16,9 @@ class UserSchema(Schema):
   publicProfileUrl = fields.Str(attribute='public_profile_url')
   numOfCollections = fields.Int(attribute='num_collections')
   pictureUrl = fields.Str(attribute='picture_url')
+  wish = fields.Str()
+  deviceId = fields.Str(attribute='device_id')
+
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)

@@ -7,28 +7,34 @@ from server import db
 
 class User(db.Model):
 
-  id = db.Column(db.Integer, primary_key=True)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=1)
   first_name = db.Column(db.String(64), nullable=False)
   last_name = db.Column(db.String(64), nullable=False)
   linkedin_id = db.Column(db.String(64))
   headline = db.Column(db.String(128))
-  linkedin_profile_url = db.Column(db.String(256))
+  industry = db.Column(db.String(128))
+  location = db.Column(db.String(128))
+  positions = db.Column(db.text())
+  summary = db.Column(db.String(512))
+  num_collections = db.Column(db.Integer)
+  public_profile_url = db.Column(db.String(256))
   picture_url = db.Column(db.String(256))
-  profile = db.Column(db.Text())
-  access_token = db.Column(db.String(128))
   create_time = db.Column(db.DateTime, default=db.func.now())
   update_time = db.Column(db.DateTime)
 
-  def __init__(self, first_name, last_name, linkedin_id, headline, linkedin_profile_url,
-               picture_url, profile, access_token):
+  def __init__(self, first_name, last_name, linkedin_id, headline, industry, location,
+               positions, summary, num_collections, public_profile_url, picture_url):
     self.first_name = first_name
     self.last_name = last_name
     self.linkedin_id = linkedin_id
     self.headline = headline
-    self.linkedin_profile_url = linkedin_profile_url
     self.picture_url = picture_url
-    self.profile = profile
-    self.access_token = access_token
+    self.industry = industry
+    self.location = location
+    self.positions = positions
+    self.summary = summary
+    self.num_collections = num_collections
+    self.public_profile_url = public_profile_url
 
   def __repr__(self):
       return '<User %r>' % self.profile
@@ -36,7 +42,7 @@ class User(db.Model):
 
 class Tag(db.Model):
 
-  id = db.Column(db.Integer, primary_key=True)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=1)
   parent_id = db.Column(db.Integer, ForeignKey('tag.id'))
   category = db.Column(db.String(128))
   name = db.Column(db.String(128), nullable=False, unique=True)
@@ -54,7 +60,7 @@ class Tag(db.Model):
 
 class TagUser(db.Model):
 
-  id = db.Column(db.Integer, primary_key=True)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=1)
   user_id = db.Column(db.Integer, ForeignKey('user.id'))
   tag_id = db.Column(db.Integer, ForeignKey('tag.id'))
 

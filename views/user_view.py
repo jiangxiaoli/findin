@@ -92,16 +92,16 @@ def analysis_tags(user_id, params):
   if params["industry"]:
     analysis_a_tag(user_id, "industry", params["industry"])
 
-  if params["positions"]:
-    positions = json.loads(params["positions"])
-    if positions:
-      for position in positions:
-
-        if position["company"]:
-          analysis_a_tag(user_id, "company", position["company"])
-
-        if position["title"]:
-          analysis_a_tag(user_id, "title", position["title"])
+  # if params["positions"]:
+  #   positions = json.loads(params["positions"])
+  #   if positions:
+  #     for position in positions:
+  #
+  #       if position["company"]:
+  #         analysis_a_tag(user_id, "company", position["company"])
+  #
+  #       if position["title"]:
+  #         analysis_a_tag(user_id, "title", position["title"])
 
 
 def analysis_a_tag(user_id, tag_category, tag_name):

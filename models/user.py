@@ -2,7 +2,6 @@ from sqlalchemy import ForeignKey
 
 __author__ = 'FindIn'
 
-from flask import g
 from server import db
 
 class User(db.Model):

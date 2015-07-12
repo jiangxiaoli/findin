@@ -1,4 +1,3 @@
-from aetypes import Enum
 from flask import json
 from flask.ext.restful import reqparse
 import time

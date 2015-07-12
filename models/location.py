@@ -6,7 +6,7 @@ from server import db
 
 class Location(db.Model):
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=1)
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
     venue_id = db.Column(db.String(64), nullable=False)
     venue_name = db.Column(db.String(64))

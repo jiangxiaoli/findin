@@ -1,9 +1,9 @@
-from flask import json
+from flask import json, jsonify
 from flask.ext.restful import reqparse
 import time
 from models.user import User, Tag, UserTag
+from schemas.user_schemas import user_schema
 from serializers.simgle_general_serializers import error_serializers
-from serializers.user_serializers import UserSerializer
 from flask_restful import Resource
 from server import api, db
 
@@ -14,7 +14,7 @@ class UserView(Resource):
     user = User.query.filter_by(id=id).first()
 
     if user:
-      return UserSerializer(user).data
+      return jsonify(user_schema.dump(user).data)
 
     else:
       return error_serializers('Unknown user!', 400), 400
@@ -49,7 +49,7 @@ class UserAddView(Resource):
     analysis_tags(user.id, args)
 
     if user:
-      return UserSerializer(user).data
+      return jsonify(user_schema.dump(user).data)
 
     else:
       return error_serializers('Error token!', 401), 401

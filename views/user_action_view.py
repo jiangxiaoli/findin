@@ -1,8 +1,11 @@
 from models.location import Location
+from models.invitation import Invitation
 from serializers.location_serializers import LocationSerializer
 from serializers.simgle_general_serializers import error_serializers
+from schemas.invitation_schemas import invitation_schema, invitations_schema
 from flask_restful import Resource, reqparse
 from server import api, db
+from flask import jsonify
 
 class LocationView(Resource):
 
@@ -38,4 +41,15 @@ class LocationView(Resource):
         else:
             return error_serializers('Unknown location!', 400), 400
 
+
+class InvitationsView(Resource):
+    def get(self, user_id):
+        invitations_from_me = Invitation.query.filter_by(inviter_id=user_id)
+        invitations_to_me = Invitation.query.filter_by(invitee_id=user_id)
+        # Serialize the queryset
+        result_invitations_from_me = invitations_schema.dump(invitations_from_me)
+        result_invitations_to_me = invitations_schema.dump(invitations_to_me)
+        return jsonify({'invitations_from_me': result_invitations_from_me.data, "invitations_to_me": result_invitations_to_me.data})
+
 api.add_resource(LocationView,'/users/<int:user_id>/location')
+api.add_resource(InvitationsView,'/users/<int:user_id>/invitations')

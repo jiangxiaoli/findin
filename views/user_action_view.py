@@ -7,6 +7,14 @@ from schemas.invitation_schemas import invitation_schema, invitations_schema
 from flask_restful import Resource, reqparse
 from server import api, db
 from flask import jsonify
+import os
+
+from apns import APNs, Payload
+
+# init apns
+cert_path = os.path.join(os.path.dirname(__file__), '../developmentCert.pem')
+key_path = os.path.join(os.path.dirname(__file__), '../developmentKey.pem')
+apns = APNs(use_sandbox=True, cert_file=cert_path, key_file=key_path)
 
 class LocationView(Resource):
 
@@ -68,6 +76,23 @@ class InvitationsView(Resource):
             invitation = Invitation(inviter_id = user_id, invitee_id=args['invitee_id'])
             db.session.add(invitation)
             db.session.commit()
+
+            # notify inviter status
+            # Send a notification to invitee
+            invitee_id = invitation.invitee_id
+            invitee = User.query.filter_by(id=invitee_id).first()
+            token_hex = invitee.device_id
+
+            if token_hex:
+                #get inviter name
+                inviter_id = invitation.inviter_id
+                inviter = User.query.filter_by(id=inviter_id).first()
+                inviter_name = inviter.first_name + " " + inviter.last_name
+
+                alert_text = "Your got an invitation from "+ inviter_name + "!"
+                payload = Payload(alert=alert_text, sound="default", badge=1)
+                apns.gateway_server.send_notification(token_hex, payload)
+
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})
         else:
@@ -88,6 +113,24 @@ class InvitationView(Resource):
             # update invitation
             invitation.status = args['status']
             db.session.commit()
+
+            # notify inviter status
+            # Send a notification to inviter
+            inviter_id = invitation.inviter_id
+            inviter = User.query.filter_by(id=inviter_id).first()
+            token_hex = inviter.device_id
+
+            if token_hex:
+                #get invitee name
+                invitee_id = invitation.invitee_id
+                invitee = User.query.filter_by(id=invitee_id).first()
+                invitee_name = invitee.first_name + " " + invitee.last_mame
+
+                if invitation.status == 2:
+                    alert_text = "Your invitation to "+ invitee_name + " is accepted!"
+                    payload = Payload(alert=alert_text, sound="default", badge=1)
+                    apns.gateway_server.send_notification(token_hex, payload)
+
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})
         else:

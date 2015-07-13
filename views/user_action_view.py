@@ -1,6 +1,7 @@
 from models.location import Location
 from models.invitation import Invitation
 from models.user import User
+from schemas.user_schemas import users_with_tags_schema
 from serializers.simgle_general_serializers import error_serializers
 from schemas.invitation_schemas import invitation_schema, invitations_schema
 from schemas.location_schemas import location_schema
@@ -12,6 +13,8 @@ import os
 from apns import APNs, Payload
 
 # init apns
+from views.user_view import get_location_users
+
 cert_path = os.path.join(os.path.dirname(__file__), '../developmentCert.pem')
 key_path = os.path.join(os.path.dirname(__file__), '../developmentKey.pem')
 apns = APNs(use_sandbox=True, cert_file=cert_path, key_file=key_path)
@@ -31,9 +34,10 @@ class LocationView(Resource):
             args = self.reqparse.parse_args()
 
             # query location in table
-            location = Location.query.filter_by(user_id=user_id).first()
-            if location is not None:
+            location_query = Location.query.filter_by(user_id=user_id)
+            if location_query.first():
                 # update location
+                location = location_query.scalar()
                 location.venue_id = args['venueId']
                 location.venue_name = args['venueName']
                 location.lat = args['lat']
@@ -45,8 +49,9 @@ class LocationView(Resource):
                 db.session.add(location)
             db.session.commit()
 
-            result = location_schema.dump(Location.query.get(location.id))
-            return jsonify({"location": result.data})
+            same_location_users = get_location_users(args['venueId'], user_id)
+
+            return jsonify({"users" : users_with_tags_schema.dump(same_location_users).data})
         else:
             return error_serializers('User not found!', 404), 404
 

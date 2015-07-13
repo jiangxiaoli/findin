@@ -66,17 +66,24 @@ class UserAddView(Resource):
     if not args['venueId'] or not args['userId']:
       return error_serializers('Params Error!', 400), 400
 
-    same_locations = Location.query.filter(Location.venue_id == args['venueId'], Location.user_id != args['userId']).all()
-    same_location_users = []
-
-    if same_locations:
-      for same_location in same_locations:
-        user = User.query.filter_by(id=same_location.user_id).first()
-        tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==same_location.user_id).all()
-        user.tags = tags
-        same_location_users.append(user)
+    same_location_users = get_location_users(args['venueId'], args['userId'])
 
     return jsonify({"users" : users_with_tags_schema.dump(same_location_users).data})
+
+
+def get_location_users(venue_id, user_id):
+
+  same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id).all()
+  same_location_users = []
+
+  if same_locations:
+    for same_location in same_locations:
+      user = User.query.filter_by(id=same_location.user_id).first()
+      tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==same_location.user_id).all()
+      user.tags = tags
+      same_location_users.append(user)
+
+  return same_location_users
 
 
 def add_or_update_user(user_params):

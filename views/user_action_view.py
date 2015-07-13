@@ -1,9 +1,9 @@
 from models.location import Location
 from models.invitation import Invitation
 from models.user import User
-from serializers.location_serializers import LocationSerializer
 from serializers.simgle_general_serializers import error_serializers
 from schemas.invitation_schemas import invitation_schema, invitations_schema
+from schemas.location_schemas import location_schema
 from flask_restful import Resource, reqparse
 from server import api, db
 from flask import jsonify
@@ -19,34 +19,42 @@ apns = APNs(use_sandbox=True, cert_file=cert_path, key_file=key_path)
 class LocationView(Resource):
 
     def put(self, user_id):
-        # PUT param
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('venue_id', type = str, required = True,
-                                   help = 'No venue id provided', location = 'json')
-        self.reqparse.add_argument('venue_name', type = str, location = 'json')
-        self.reqparse.add_argument('lat', type = str, location = 'json')
-        self.reqparse.add_argument('lng', type = str, location = 'json')
-        args = self.reqparse.parse_args()
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            # PUT param
+            self.reqparse = reqparse.RequestParser()
+            self.reqparse.add_argument('venueId', type = str, required = True,
+                                       help = 'No venue id provided', location = 'json')
+            self.reqparse.add_argument('venueName', type = str, location = 'json')
+            self.reqparse.add_argument('lat', type = str, location = 'json')
+            self.reqparse.add_argument('lng', type = str, location = 'json')
+            args = self.reqparse.parse_args()
 
-        # query location in table
-        location = Location.query.filter_by(user_id=user_id).first()
-        if location is not None:
-            # update location
-            location.venue_id = args['venue_id']
-            location.venue_name = args['venue_name']
-            location.lat = args['lat']
-            location.lng = args['lng']
+            # query location in table
+            location = Location.query.filter_by(user_id=user_id).first()
+            if location is not None:
+                # update location
+                location.venue_id = args['venueId']
+                location.venue_name = args['venueName']
+                location.lat = args['lat']
+                location.lng = args['lng']
+                location.update_time = db.func.now()
+            else:
+                # create new location
+                location = Location(user_id = user_id, venue_id=args['venueId'], venue_name=args['venueName'], lat=args['lat'], lng=args['lng'])
+                db.session.add(location)
+            db.session.commit()
+
+            result = location_schema.dump(Location.query.get(location.id))
+            return jsonify({"location": result.data})
         else:
-            # create new location
-            location = Location(user_id = user_id, venue_id=args['venue_id'], venue_name=args['venue_name'], lat=args['lat'], lng=args['lng'])
-            db.session.add(location)
-        db.session.commit()
-        return LocationSerializer(location).data
+            return error_serializers('User not found!', 400), 400
 
     def get(self, user_id):
         location = Location.query.filter_by(user_id=user_id).first()
         if location:
-            return LocationSerializer(location).data
+            result = location_schema.dump(Location.query.get(location.id))
+            return jsonify({"location": result.data})
         else:
             return error_serializers('Unknown location!', 400), 400
 
@@ -68,12 +76,12 @@ class InvitationsView(Resource):
         if user:
             # POST param
             self.reqparse = reqparse.RequestParser()
-            self.reqparse.add_argument('invitee_id', type = str, required = True,
+            self.reqparse.add_argument('inviteeId', type = str, required = True,
                                        help = 'No invitee id provided', location = 'json')
             args = self.reqparse.parse_args()
 
             # create new invitation
-            invitation = Invitation(inviter_id = user_id, invitee_id=args['invitee_id'])
+            invitation = Invitation(inviter_id = user_id, invitee_id=args['inviteeId'])
             db.session.add(invitation)
             db.session.commit()
 
@@ -112,6 +120,7 @@ class InvitationView(Resource):
         if invitation is not None:
             # update invitation
             invitation.status = args['status']
+            invitation.update_time = db.func.now()
             db.session.commit()
 
             # notify inviter status

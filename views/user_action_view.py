@@ -48,7 +48,7 @@ class LocationView(Resource):
             result = location_schema.dump(Location.query.get(location.id))
             return jsonify({"location": result.data})
         else:
-            return error_serializers('User not found!', 400), 400
+            return error_serializers('User not found!', 404), 404
 
     def get(self, user_id):
         location = Location.query.filter_by(user_id=user_id).first()
@@ -56,7 +56,7 @@ class LocationView(Resource):
             result = location_schema.dump(Location.query.get(location.id))
             return jsonify({"location": result.data})
         else:
-            return error_serializers('Unknown location!', 400), 400
+            return error_serializers('Unknown location!', 404), 404
 
 class InvitationsView(Resource):
     def get(self, user_id):
@@ -69,7 +69,7 @@ class InvitationsView(Resource):
             result_invitations_to_me = invitations_schema.dump(invitations_to_me)
             return jsonify({'invitationsFromMe': result_invitations_from_me.data, "invitationsToMe": result_invitations_to_me.data})
         else:
-            return error_serializers('User not found!', 400), 400
+            return error_serializers('User not found!', 404), 404
 
     def post(self, user_id):
         user = User.query.filter_by(id=user_id).first()
@@ -104,7 +104,7 @@ class InvitationsView(Resource):
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})
         else:
-            return error_serializers('User not found!', 400), 400
+            return error_serializers('User not found!', 404), 404
 
 class InvitationView(Resource):
 
@@ -143,7 +143,7 @@ class InvitationView(Resource):
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})
         else:
-            return error_serializers('Unknown invitation!', 400), 400
+            return error_serializers('Unknown invitation!', 404), 404
 
     def get(self, invitation_id):
         invitation = Invitation.query.filter_by(id=invitation_id).first()
@@ -151,7 +151,7 @@ class InvitationView(Resource):
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})
         else:
-            return error_serializers('Unknown invitation!', 400), 400
+            return error_serializers('Unknown invitation!', 404), 404
 
 api.add_resource(LocationView,'/users/<int:user_id>/location')
 api.add_resource(InvitationsView,'/users/<int:user_id>/invitations')

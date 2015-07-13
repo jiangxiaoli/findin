@@ -67,7 +67,7 @@ class InvitationsView(Resource):
             # Serialize the queryset
             result_invitations_from_me = invitations_schema.dump(invitations_from_me)
             result_invitations_to_me = invitations_schema.dump(invitations_to_me)
-            return jsonify({'invitations_from_me': result_invitations_from_me.data, "invitations_to_me": result_invitations_to_me.data})
+            return jsonify({'invitationsFromMe': result_invitations_from_me.data, "invitationsToMe": result_invitations_to_me.data})
         else:
             return error_serializers('User not found!', 400), 400
 

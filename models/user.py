@@ -1,4 +1,5 @@
 from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 __author__ = 'FindIn'
 
@@ -22,6 +23,7 @@ class User(db.Model):
   device_id = db.Column(db.String(256))
   create_time = db.Column(db.DateTime, default=db.func.now())
   update_time = db.Column(db.DateTime)
+  tags = []
 
   def __init__(self, first_name, last_name, linkedin_id, headline, industry, location,
                positions, summary, num_collections, public_profile_url, picture_url, wish, device_id):
@@ -72,4 +74,4 @@ class UserTag(db.Model):
     self.tag_id = tag_id
 
   def __repr__(self):
-      return '<Tag %r>' % (self.user_id, self.tag_id)
+      return '<Tag %s>' % self.id

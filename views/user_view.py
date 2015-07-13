@@ -1,8 +1,10 @@
 from flask import json, jsonify
 from flask.ext.restful import reqparse
 import time
+from sqlalchemy import select
+from models.location import Location
 from models.user import User, Tag, UserTag
-from schemas.user_schemas import user_schema
+from schemas.user_schemas import user_schema, users_with_tags_schema
 from serializers.simgle_general_serializers import error_serializers
 from flask_restful import Resource
 from server import api, db
@@ -28,10 +30,13 @@ parser.add_argument('lastName', type=str)
 parser.add_argument('numberOfConnections', type=int)
 parser.add_argument('location', type=str)
 parser.add_argument('pictureUrl', type=str)
-parser.add_argument('positions', type=str)
+parser.add_argument('positions', type=str, location='json')
 parser.add_argument('publicProfileUrl', type=str)
 parser.add_argument('summary', type=str)
 parser.add_argument('deviceId', type=str)
+
+parser.add_argument('userId', type=int)
+parser.add_argument('venueId', type=str)
 
 
 class UserAddView(Resource):
@@ -54,6 +59,25 @@ class UserAddView(Resource):
 
     else:
       return error_serializers('Error token!', 401), 401
+
+
+  def get(self):
+
+    args = parser.parse_args()
+    if not args['venueId'] or not args['userId']:
+      return error_serializers('Params Error!', 400), 400
+
+    same_locations = Location.query.filter(Location.venue_id == args['venueId'], Location.user_id != args['userId']).all()
+    same_location_users = []
+
+    if same_locations:
+      for same_location in same_locations:
+        user = User.query.filter_by(id=same_location.user_id).first()
+        tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==same_location.user_id).all()
+        user.tags = tags
+        same_location_users.append(user)
+
+    return jsonify({"users" : users_with_tags_schema.dump(same_location_users).data})
 
 
 def add_or_update_user(user_params):
@@ -91,20 +115,26 @@ def add_or_update_user(user_params):
 
 def analysis_tags(user_id, params):
 
-  if params["industry"]:
-    analysis_a_tag(user_id, "industry", params["industry"])
+  try:
+    if params["industry"]:
+      analysis_a_tag(user_id, "industry", params["industry"])
 
-  # if params["positions"]:
-  #   positions = json.loads(params["positions"])
-  #   print positions
-  #   if positions:
-  #     for position in positions:
-  #
-  #       if position["company"]:
-  #         analysis_a_tag(user_id, "company", position["company"])
-  #
-  #       if position["title"]:
-  #         analysis_a_tag(user_id, "title", position["title"])
+    if params["positions"]:
+      print params["positions"]
+      positions = params["positions"].split()
+      print positions
+      print type(positions)
+      if positions:
+        for position in positions:
+          print position
+          if position["company"]:
+            analysis_a_tag(user_id, "company", position["company"])
+
+          if position["title"]:
+            analysis_a_tag(user_id, "title", position["title"])
+
+  except Exception, e:
+    print 'Analysis_tags error', e.message
 
 
 def analysis_a_tag(user_id, tag_category, tag_name):

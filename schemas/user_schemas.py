@@ -2,6 +2,17 @@ __author__ = 'FindIn'
 
 from marshmallow import Schema, fields
 
+class TagSchema(Schema):
+
+  id = fields.Int()
+  parentId = fields.Int(attribute='parent_id')
+  category = fields.Str()
+  name = fields.Str()
+
+tag_schema = TagSchema()
+tags_schema = TagSchema(many=True)
+
+
 class UserSchema(Schema):
 
   id = fields.Int()
@@ -18,19 +29,11 @@ class UserSchema(Schema):
   pictureUrl = fields.Str(attribute='picture_url')
   wish = fields.Str()
   deviceId = fields.Str(attribute='device_id')
+  tags = fields.Nested(TagSchema, many=True)
 
 
 user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-
-
-class TagSchema(Schema):
-
-  parentId = fields.Int(attribute='parent_id')
-  fields = ("id", "category", "name")
-
-tag_schema = TagSchema()
-tags_schema = TagSchema(many=True)
+users_with_tags_schema = UserSchema(many=True)
 
 
 class UserTagSchema(Schema):

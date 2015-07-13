@@ -133,7 +133,7 @@ class InvitationView(Resource):
                 #get invitee name
                 invitee_id = invitation.invitee_id
                 invitee = User.query.filter_by(id=invitee_id).first()
-                invitee_name = invitee.first_name + " " + invitee.last_mame
+                invitee_name = invitee.first_name + " " + invitee.last_name
 
                 if invitation.status == 2:
                     alert_text = "Your invitation to "+ invitee_name + " is accepted!"

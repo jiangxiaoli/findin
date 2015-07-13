@@ -1,7 +1,6 @@
-from flask import json, jsonify
+from flask import jsonify
 from flask.ext.restful import reqparse
 import time
-from sqlalchemy import select
 from models.location import Location
 from models.user import User, Tag, UserTag
 from schemas.user_schemas import user_schema, users_with_tags_schema

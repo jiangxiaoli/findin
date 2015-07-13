@@ -13,7 +13,7 @@ class Location(db.Model):
     lat = db.Column(db.String(64))
     lng = db.Column(db.String(64))
     create_time = db.Column(db.DateTime, default=db.func.now())
-    update_time = db.Column(db.DateTime)
+    update_time = db.Column(db.DateTime, default=db.func.now())
 
     def __init__(self, user_id, venue_id, venue_name, lat, lng):
         self.user_id = user_id

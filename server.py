@@ -14,8 +14,9 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 # flask-sqlalchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+oursql://findin:findin123@23.228.104.59/findin"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+oursql://root:linkedin@localhost/FindIn"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+oursql://bd7cd5546fea51:bd572f6a@us-cdbr-iron-east-02.cleardb.net/heroku_d1f583887d02075"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+oursql://bd7cd5546fea51:bd572f6a@us-cdbr-iron-east-02.cleardb.net/heroku_d1f583887d02075"
 db = SQLAlchemy(app)
 
 # flask-restful

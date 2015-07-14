@@ -75,13 +75,23 @@ def get_location_users(venue_id, user_id):
 
   same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id).all()
   same_location_users = []
+  user_ids = set()
 
   if same_locations:
     for same_location in same_locations:
+      user_ids.add(same_location.user_id)
       user = User.query.filter_by(id=same_location.user_id).first()
       tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==same_location.user_id).all()
       user.tags = tags
       same_location_users.append(user)
+
+  hardcode_users = User.query.filter(User.id>=62, User.id<=68).all()
+  for hardcode_user in hardcode_users:
+    if hardcode_user.id in user_ids:
+      continue
+    tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==hardcode_user.id).all()
+    hardcode_user.tags = tags
+    same_location_users.append(hardcode_user)
 
   return same_location_users
 

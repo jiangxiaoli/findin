@@ -170,4 +170,4 @@ def analysis_a_tag(user_id, tag_category, tag_name):
 
 
 api.add_resource(UserAddView, '/users')
-api.add_resource(UserView, '/users/<int:id>/linkedin_profile')
+api.add_resource(UserView, '/users/<int:id>')

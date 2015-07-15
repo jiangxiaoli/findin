@@ -121,7 +121,8 @@ def add_or_update_user(user_params):
     # Add
     user = User(user_params['firstName'], user_params['lastName'], user_params['linkedinId'], user_params['headline'],
                 user_params['industry'], user_params['location'], user_params['positions'], user_params['summary'],
-                user_params['numberOfConnections'], user_params['publicProfileUrl'], user_params['pictureUrl'])
+                user_params['numberOfConnections'], user_params['publicProfileUrl'], user_params['pictureUrl'],
+                '', user_params['deviceId'])
     db.session.add(user)
 
   db.session.commit()

@@ -5,6 +5,7 @@ from models.location import Location
 from models.user import User, Tag, UserTag
 from schemas.user_schemas import user_schema, users_with_tags_schema
 from serializers.simgle_general_serializers import error_serializers
+from serializers.user_wish_serializers import user_wish_serializers
 from flask_restful import Resource
 from server import api, db
 
@@ -179,6 +180,28 @@ def analysis_a_tag(user_id, tag_category, tag_name):
     db.session.add(UserTag(user_id, tag.id))
     db.session.commit()
 
+class UserWishView(Resource):
+
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user:
+            return user_wish_serializers(id, user.wish)
+        else:
+            return error_serializers('User not found!', 404), 404
+
+    def put(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user:
+            # PUT param
+            self.reqparse = reqparse.RequestParser()
+            self.reqparse.add_argument('wish', type = str, location = 'json')
+            args = self.reqparse.parse_args()
+            user.wish = args['wish']
+            db.session.commit()
+            return user_wish_serializers(id, user.wish)
+        else:
+            return error_serializers('User not found!', 404), 404
 
 api.add_resource(UserAddView, '/users')
 api.add_resource(UserView, '/users/<int:id>')
+api.add_resource(UserWishView, '/users/<int:id>/wish')

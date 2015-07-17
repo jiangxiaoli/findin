@@ -64,6 +64,7 @@ class LocationView(Resource):
             return error_serializers('Unknown location!', 404), 404
 
 class InvitationsView(Resource):
+
     def get(self, user_id):
         user = User.query.filter_by(id=user_id).first()
         invitations_from_me_arr = []

@@ -12,6 +12,8 @@ class Invitation(db.Model):
     status = db.Column(db.Integer, nullable=False)
     create_time = db.Column(db.DateTime, default=db.func.now())
     update_time = db.Column(db.DateTime)
+    inviter = {}
+    invitee = {}
 
     def __init__(self, inviter_id, invitee_id):
         self.inviter_id = inviter_id

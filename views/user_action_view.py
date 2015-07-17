@@ -66,12 +66,29 @@ class LocationView(Resource):
 class InvitationsView(Resource):
     def get(self, user_id):
         user = User.query.filter_by(id=user_id).first()
+        invitations_from_me_arr = []
+        invitations_to_me_arr = []
+
         if user:
             invitations_from_me = Invitation.query.filter_by(inviter_id=user_id)
+            for invitationFrom in invitations_from_me:
+                inviter = User.query.filter_by(id=invitationFrom.inviter_id).first()
+                invitationFrom.inviter = inviter
+                invitee = User.query.filter_by(id=invitationFrom.invitee_id).first()
+                invitationFrom.invitee = invitee
+                invitations_from_me_arr.append(invitationFrom)
+
             invitations_to_me = Invitation.query.filter_by(invitee_id=user_id)
+            for invitationTo in invitations_to_me:
+                inviter = User.query.filter_by(id=invitationTo.inviter_id).first()
+                invitationTo.inviter = inviter
+                invitee = User.query.filter_by(id=invitationTo.invitee_id).first()
+                invitationTo.invitee = invitee
+                invitations_to_me_arr.append(invitationTo)
+
             # Serialize the queryset
-            result_invitations_from_me = invitations_schema.dump(invitations_from_me)
-            result_invitations_to_me = invitations_schema.dump(invitations_to_me)
+            result_invitations_from_me = invitations_schema.dump(invitations_from_me_arr)
+            result_invitations_to_me = invitations_schema.dump(invitations_to_me_arr)
             return jsonify({'invitationsFromMe': result_invitations_from_me.data, "invitationsToMe": result_invitations_to_me.data})
         else:
             return error_serializers('User not found!', 404), 404

@@ -1,10 +1,12 @@
 from models.location import Location
 from models.invitation import Invitation
 from models.user import User
+from models.subscribe import Subscribe
 from schemas.user_schemas import users_with_tags_schema
 from serializers.simgle_general_serializers import error_serializers
 from schemas.invitation_schemas import invitation_schema, invitations_schema
 from schemas.location_schemas import location_schema
+from schemas.subscribe_schemas import subscribe_schema
 from flask_restful import Resource, reqparse
 from server import api, db
 from flask import jsonify
@@ -176,6 +178,52 @@ class InvitationView(Resource):
         else:
             return error_serializers('Unknown invitation!', 404), 404
 
+class UserSubAddView(Resource):
+    def post(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user:
+            # POST param
+            self.reqparse = reqparse.RequestParser()
+            self.reqparse.add_argument('tags', type = str, location = 'json')
+            args = self.reqparse.parse_args()
+            subscribe = Subscribe(id, args['tags'])
+            subscribe.user = user
+            db.session.add(subscribe)
+            db.session.commit()
+            result = subscribe_schema.dump(subscribe.query.get(subscribe.id))
+            return jsonify({"subscribe": result.data})
+        else:
+            return error_serializers('User not found!', 404), 404
+
+class UserSubView(Resource):
+    def put(self, id, sub_id):
+        user = User.query.filter_by(id=id).first()
+        subscribe = Subscribe.query.filter_by(id=sub_id).first()
+        if user and subscribe:
+            # PUT param
+            self.reqparse = reqparse.RequestParser()
+            self.reqparse.add_argument('tags', type = str, location = 'json')
+            args = self.reqparse.parse_args()
+            subscribe.tags = args['tags']
+            subscribe.user = user
+            db.session.commit()
+            result = subscribe_schema.dump(subscribe.query.get(subscribe.id))
+            return jsonify({"subscribe": result.data})
+        else:
+            return error_serializers('Record not found!', 404), 404
+
+    def get(self, id, sub_id):
+        user = User.query.filter_by(id=id).first()
+        subscribe = Subscribe.query.filter_by(id=sub_id).first()
+        if user and subscribe:
+            subscribe.user = user
+            result = subscribe_schema.dump(subscribe)
+            return jsonify({"subscribe": result.data})
+        else:
+            return error_serializers('Record not found!', 404), 404
+
 api.add_resource(LocationView,'/users/<int:user_id>/location')
 api.add_resource(InvitationsView,'/users/<int:user_id>/invitations')
 api.add_resource(InvitationView,'/invitations/<int:invitation_id>')
+api.add_resource(UserSubAddView, '/users/<int:id>/subscribe')
+api.add_resource(UserSubView, '/users/<int:id>/subscribe/<int:sub_id>')

@@ -1,7 +1,6 @@
-from sqlalchemy import ForeignKey
-
 __author__ = 'FindIn'
 
+from sqlalchemy import ForeignKey
 from server import db
 
 class Invitation(db.Model):

@@ -132,7 +132,7 @@ def send_notification(sender_id, user_id):
       # get inviter name
       invitee_name = invitee.first_name + " " + invitee.last_name
 
-      alert_text = invitee_name + " is the right person you are looking for!"
+      alert_text = invitee_name + " is the right person you are looking for. She/He is right near you."
 
       payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
       apns.gateway_server.send_notification(token_hex, payload)

@@ -207,18 +207,19 @@ class TagsView(Resource):
 
     def get(self):
 
-      result = {}
+      # industry_tags = Tag.query.filter_by(parent_id=1).all()
+      # result['industry'] = tags_schema.dump(industry_tags).data
+      #
+      # company_tags = Tag.query.filter_by(parent_id=2).all()
+      # result['company'] = tags_schema.dump(company_tags).data
+      #
+      # title_tags = Tag.query.filter_by(parent_id=3).all()
+      # result['title'] = tags_schema.dump(title_tags).data
 
-      industry_tags = Tag.query.filter_by(parent_id=1).all()
-      result['industry'] = tags_schema.dump(industry_tags).data
-
-      company_tags = Tag.query.filter_by(parent_id=2).all()
-      result['company'] = tags_schema.dump(company_tags).data
-
-      title_tags = Tag.query.filter_by(parent_id=3).all()
-      result['title'] = tags_schema.dump(title_tags).data
-
-      return result
+      return {"industry": [{"name":"Internet"}, {"name":"Design"}, {"name":"Medical"}, {"name":"Oil"}],
+              "company":[{"name":"LinkedIn"}, {"name":"Google"}, {"name":"Apple"}],
+              "title":[{"name":"Designer"}, {"name":"Software Engineer"}, {"name":"Software Engineer Internship"}]
+          }
 
 
 api.add_resource(UserAddView, '/users')

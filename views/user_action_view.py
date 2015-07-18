@@ -76,7 +76,7 @@ class LocationView(Resource):
             except Exception, e:
               print 'match master user to users error', e.message
 
-            return 'success'
+            return {'msg':'success'}
         else:
             return error_serializers('User not found!', 404), 404
 

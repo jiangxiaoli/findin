@@ -17,7 +17,7 @@ class Invitation(db.Model):
     def __init__(self, inviter_id, invitee_id):
         self.inviter_id = inviter_id
         self. invitee_id = invitee_id
-        self.status = 1 # 1: pending, 2: accept, 3: deny
+        self.status = 1 # 1. not send; 2. pending, send; 3. accept; 4. deny; 5. pass
 
     def __repr__(self):
         return '<Invitation %r>' % (self.id, self.inviter_id, self.invitee_id, self.status)

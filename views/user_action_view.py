@@ -275,6 +275,13 @@ class InvitationView(Resource):
 
     def get(self, invitation_id):
         invitation = Invitation.query.filter_by(id=invitation_id).first()
+        inviter_id = invitation.inviter_id
+        inviter = User.query.filter_by(id=inviter_id).first()
+        invitee_id = invitation.invitee_id
+        invitee = User.query.filter_by(id=invitee_id).first()
+        invitation.inviter = inviter
+        invitation.invitee = invitee
+        
         if invitation:
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})

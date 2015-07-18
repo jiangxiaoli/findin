@@ -108,6 +108,7 @@ def send_notification(sender_id, user_id):
 
   invitation_query = Invitation.query.filter_by(inviter_id=sender_id, invitee_id=user_id)
   send = False
+  invitation = None
   if invitation_query.first():
     invitation = invitation_query.scalar()
     # if invitation.create_time > (datetime.datetime.now() + datetime.timedelta(days=1)):
@@ -125,13 +126,13 @@ def send_notification(sender_id, user_id):
   if send:
     inviter = User.query.filter_by(id=sender_id).first()
     invitee = User.query.filter_by(id=user_id).first()
-    token_hex = invitee.device_id
+    token_hex = inviter.device_id
 
     if token_hex:
       # get inviter name
-      inviter_name = inviter.first_name + " " + inviter.last_name
+      invitee_name = invitee.first_name + " " + invitee.last_name
 
-      alert_text = "Your got an invitation from "+ inviter_name + "!"
+      alert_text = invitee_name + " is the right person you are looking for!"
 
       payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
       apns.gateway_server.send_notification(token_hex, payload)
@@ -233,7 +234,7 @@ class InvitationView(Resource):
                         inviter = User.query.filter_by(id=inviter_id).first()
                         inviter_name = inviter.first_name + " " + inviter.last_name
 
-                        alert_text = "Your got an invitation from " + inviter_name + "!"
+                        alert_text = "You got an invitation from " + inviter_name + "!"
                         payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
                         apns.gateway_server.send_notification(token_hex, payload)
                         print alert_text

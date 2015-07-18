@@ -211,13 +211,13 @@ class TagsView(Resource):
 
       result = {}
 
-      industry_tags = Tag.query.filter_by(id=1).all()
+      industry_tags = Tag.query.filter_by(parent_id=1).all()
       result['industry'] = tags_schema.dump(industry_tags).data
 
-      company_tags = Tag.query.filter_by(id=2).all()
+      company_tags = Tag.query.filter_by(parent_id=2).all()
       result['company'] = tags_schema.dump(company_tags).data
-      
-      title_tags = Tag.query.filter_by(id=3).all()
+
+      title_tags = Tag.query.filter_by(parent_id=3).all()
       result['title'] = tags_schema.dump(title_tags).data
 
       return result

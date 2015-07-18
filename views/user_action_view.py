@@ -142,6 +142,7 @@ def send_notification(sender_id, user_id):
 
 def get_location_users_without_tags(venue_id, user_id):
 
+  print datetime.datetime.now()
   same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id,
                                          Location.update_time > (datetime.datetime.now() - datetime.timedelta(minutes=30))).all()
 

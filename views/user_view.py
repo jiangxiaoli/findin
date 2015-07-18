@@ -1,3 +1,4 @@
+import datetime
 from flask import jsonify
 from flask.ext.restful import reqparse
 import time
@@ -74,7 +75,8 @@ class UserAddView(Resource):
 
 def get_location_users(venue_id, user_id):
 
-  same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id).all()
+  same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id,
+                                         Location.create_time > (datetime.datetime.now() + datetime.timedelta(minutes=30))).all()
   same_location_users = []
   user_ids = set()
 

@@ -1,7 +1,8 @@
+import datetime
 from models.location import Location
 from models.invitation import Invitation
-from models.user import User
 from models.subscribe import Subscribe
+from models.user import User, UserTag, Tag
 from schemas.user_schemas import users_with_tags_schema
 from serializers.simgle_general_serializers import error_serializers
 from schemas.invitation_schemas import invitation_schema, invitations_schema
@@ -20,6 +21,7 @@ from views.user_view import get_location_users
 cert_path = os.path.join(os.path.dirname(__file__), '../developmentCert.pem')
 key_path = os.path.join(os.path.dirname(__file__), '../developmentKey.pem')
 apns = APNs(use_sandbox=True, cert_file=cert_path, key_file=key_path)
+
 
 class LocationView(Resource):
 
@@ -51,9 +53,30 @@ class LocationView(Resource):
                 db.session.add(location)
             db.session.commit()
 
-            same_location_users = get_location_users(args['venueId'], user_id)
+            # same_location_users = get_location_users(args['venueId'], user_id)
+            same_location_users = get_location_users_without_tags(args['venueId'], user_id)
 
-            return jsonify({"users" : users_with_tags_schema.dump(same_location_users).data})
+            # Match and send notification to who is checking in
+            try:
+              tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==user_id).all()
+              for some_location_user in same_location_users:
+                if match(tags, some_location_user.user_id):
+                  if send_notification(some_location_user.user_id, user_id):
+                    break
+            except Exception, e:
+              print 'match users to master user error', e.message
+
+            # Match and send notification to who is checking in
+            try:
+              for some_location_user in same_location_users:
+                tags = db.session.query(Tag).join(UserTag).filter(UserTag.user_id==some_location_user.id).all()
+                if match(tags, user.id):
+                  if send_notification(user.id, some_location_user.id):
+                    break
+            except Exception, e:
+              print 'match master user to users error', e.message
+
+            return 'success'
         else:
             return error_serializers('User not found!', 404), 404
 
@@ -64,6 +87,63 @@ class LocationView(Resource):
             return jsonify({"location": result.data})
         else:
             return error_serializers('Unknown location!', 404), 404
+
+
+def match(tags, user_id):
+
+  subscribe = Subscribe.query.filter_by(user_id=user_id).first()
+
+  if subscribe:
+    for tag in tags:
+      if subscribe.tags:
+        subscribed_tags = subscribe.tags.split(",")
+        for s_tag in subscribed_tags:
+          if tag.name == s_tag.strip():
+            return True
+
+  return False
+
+
+def send_notification(sender_id, user_id):
+
+  invitation_query = Invitation.query.filter_by(inviter_id=sender_id, invitee_id=user_id)
+  send = False
+  if invitation_query.first():
+    invitation = invitation_query.scalar()
+    if invitation.create_time > (datetime.datetime.now() + datetime.timedelta(days=1)):
+      send = True
+      invitation.status = 1
+      invitation.update_time = datetime.time.strftime("%Y-%m-%d %X", datetime.time.localtime())
+  else:
+    send = True
+    invitation = Invitation(inviter_id=sender_id, invitee_id=user_id)
+    db.session.add(invitation)
+
+  db.session.commit()
+
+  # Send a notification to invitee
+  if send:
+    inviter = User.query.filter_by(id=sender_id).first()
+    invitee = User.query.filter_by(id=user_id).first()
+    token_hex = invitee.device_id
+
+    if token_hex:
+      # get inviter name
+      inviter_name = inviter.first_name + " " + inviter.last_name
+
+      alert_text = "Your got an invitation from "+ inviter_name + "!"
+      payload = Payload(alert=alert_text, sound="default", badge=1)
+      apns.gateway_server.send_notification(token_hex, payload)
+
+  return send
+
+def get_location_users_without_tags(venue_id, user_id):
+
+  same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id,
+                                         Location.update_time > (datetime.datetime.now() - datetime.timedelta(minutes=30))).all()
+
+  return same_locations
+
 
 class InvitationsView(Resource):
 
@@ -136,8 +216,8 @@ class InvitationView(Resource):
     def put(self, invitation_id):
         # PUT param
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('status', type = int, required = True,
-                                   help = 'No status id provided', location = 'json')
+        self.reqparse.add_argument('status', type=int, required=True,
+                                   help='No status id provided', location='json')
         args = self.reqparse.parse_args()
 
         # query location in table
@@ -155,7 +235,7 @@ class InvitationView(Resource):
             token_hex = inviter.device_id
 
             if token_hex:
-                #get invitee name
+                # get invitee name
                 invitee_id = invitation.invitee_id
                 invitee = User.query.filter_by(id=invitee_id).first()
                 invitee_name = invitee.first_name + " " + invitee.last_name
@@ -178,6 +258,7 @@ class InvitationView(Resource):
         else:
             return error_serializers('Unknown invitation!', 404), 404
 
+
 class UserSubAddView(Resource):
     def post(self, id):
         user = User.query.filter_by(id=id).first()
@@ -194,6 +275,8 @@ class UserSubAddView(Resource):
             return jsonify({"subscribe": result.data})
         else:
             return error_serializers('User not found!', 404), 404
+
+
 
 class UserSubView(Resource):
     def put(self, id, sub_id):

@@ -4,7 +4,7 @@ from flask.ext.restful import reqparse
 import time
 from models.location import Location
 from models.user import User, Tag, UserTag
-from schemas.user_schemas import user_schema, users_with_tags_schema
+from schemas.user_schemas import user_schema, users_with_tags_schema, tags_schema
 from serializers.simgle_general_serializers import error_serializers
 from serializers.user_wish_serializers import user_wish_serializers
 from flask_restful import Resource
@@ -204,6 +204,26 @@ class UserWishView(Resource):
         else:
             return error_serializers('User not found!', 404), 404
 
+
+class TagsView(Resource):
+
+    def get(self):
+
+      result = {}
+
+      industry_tags = Tag.query.filter_by(id=1).all()
+      result['industry'] = tags_schema.dump(industry_tags).data
+
+      company_tags = Tag.query.filter_by(id=2).all()
+      result['company'] = tags_schema.dump(company_tags).data
+      
+      title_tags = Tag.query.filter_by(id=3).all()
+      result['title'] = tags_schema.dump(title_tags).data
+
+      return result
+
+
 api.add_resource(UserAddView, '/users')
 api.add_resource(UserView, '/users/<int:id>')
 api.add_resource(UserWishView, '/users/<int:id>/wish')
+api.add_resource(TagsView, '/tags')

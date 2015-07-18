@@ -132,7 +132,8 @@ def send_notification(sender_id, user_id):
       inviter_name = inviter.first_name + " " + inviter.last_name
 
       alert_text = "Your got an invitation from "+ inviter_name + "!"
-      payload = Payload(alert=alert_text, sound="default", badge=1)
+
+      payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
       apns.gateway_server.send_notification(token_hex, payload)
 
       print alert_text
@@ -234,7 +235,7 @@ class InvitationView(Resource):
                         inviter_name = inviter.first_name + " " + inviter.last_name
 
                         alert_text = "Your got an invitation from " + inviter_name + "!"
-                        payload = Payload(alert=alert_text, sound="default", badge=1)
+                        payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
                         apns.gateway_server.send_notification(token_hex, payload)
                         print alert_text
 
@@ -260,7 +261,7 @@ class InvitationView(Resource):
                         invitee_name = invitee.first_name + " " + invitee.last_name
 
                         alert_text = "Your invitation to " + invitee_name + " is accepted!"
-                        payload = Payload(alert=alert_text, sound="default", badge=1)
+                        payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
                         apns.gateway_server.send_notification(token_hex, payload)
 
                         print alert_text

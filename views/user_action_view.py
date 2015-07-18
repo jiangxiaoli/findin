@@ -110,10 +110,10 @@ def send_notification(sender_id, user_id):
   send = False
   if invitation_query.first():
     invitation = invitation_query.scalar()
-    if invitation.create_time > (datetime.datetime.now() + datetime.timedelta(days=1)):
-      send = True
-      invitation.status = 1
-      invitation.update_time = datetime.time.strftime("%Y-%m-%d %X", datetime.time.localtime())
+    # if invitation.create_time > (datetime.datetime.now() + datetime.timedelta(days=1)):
+    send = True
+    invitation.status = 1
+    invitation.update_time = datetime.time.strftime("%Y-%m-%d %X", datetime.time.localtime())
   else:
     send = True
     invitation = Invitation(inviter_id=sender_id, invitee_id=user_id)
@@ -142,9 +142,7 @@ def send_notification(sender_id, user_id):
 
 def get_location_users_without_tags(venue_id, user_id):
 
-  print datetime.datetime.now()
-  same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id,
-                                         Location.update_time > (datetime.datetime.now() - datetime.timedelta(minutes=30))).all()
+  same_locations = Location.query.filter(Location.venue_id == venue_id, Location.user_id != user_id).all()
 
   return same_locations
 

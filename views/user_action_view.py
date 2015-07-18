@@ -81,7 +81,7 @@ class InvitationsView(Resource):
                 invitationFrom.invitee = invitee
                 invitations_from_me_arr.append(invitationFrom)
 
-            invitations_to_me = Invitation.query.filter(Invitation.inviter_id == user_id, Invitation.status != 5).all()
+            invitations_to_me = Invitation.query.filter(Invitation.invitee_id == user_id, Invitation.status != 5).all()
             for invitationTo in invitations_to_me:
                 inviter = User.query.filter_by(id=invitationTo.inviter_id).first()
                 invitationTo.inviter = inviter

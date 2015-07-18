@@ -135,6 +135,8 @@ def send_notification(sender_id, user_id):
       payload = Payload(alert=alert_text, sound="default", badge=1)
       apns.gateway_server.send_notification(token_hex, payload)
 
+      print alert_text
+
   return send
 
 def get_location_users_without_tags(venue_id, user_id):
@@ -190,26 +192,11 @@ class InvitationsView(Resource):
             db.session.add(invitation)
             db.session.commit()
 
-            # notify inviter status
-            # Send a notification to invitee
-            invitee_id = invitation.invitee_id
-            invitee = User.query.filter_by(id=invitee_id).first()
-            token_hex = invitee.device_id
-
-            if token_hex:
-                #get inviter name
-                inviter_id = invitation.inviter_id
-                inviter = User.query.filter_by(id=inviter_id).first()
-                inviter_name = inviter.first_name + " " + inviter.last_name
-
-                alert_text = "Your got an invitation from "+ inviter_name + "!"
-                payload = Payload(alert=alert_text, sound="default", badge=1)
-                apns.gateway_server.send_notification(token_hex, payload)
-
             result = invitation_schema.dump(Invitation.query.get(invitation.id))
             return jsonify({"invitation": result.data})
         else:
             return error_serializers('User not found!', 404), 404
+
 
 class InvitationView(Resource):
 
@@ -221,34 +208,69 @@ class InvitationView(Resource):
         args = self.reqparse.parse_args()
 
         # query location in table
-        invitation = Invitation.query.filter_by(id=invitation_id).first()
-        if invitation is not None:
-            # update invitation
-            invitation.status = args['status']
-            invitation.update_time = db.func.now()
-            db.session.commit()
+        status = args['status']
 
-            # notify inviter status
-            # Send a notification to inviter
-            inviter_id = invitation.inviter_id
-            inviter = User.query.filter_by(id=inviter_id).first()
-            token_hex = inviter.device_id
+        if status == 2 or status == 5:
+            invitation_query = Invitation.query.filter_by(id=invitation_id, status=1)
+            if invitation_query.first():
+                invitation = invitation_query.scalar()
+                invitation.status = status
+                invitation.update_time = db.func.now()
+                db.session.commit()
 
-            if token_hex:
-                # get invitee name
-                invitee_id = invitation.invitee_id
-                invitee = User.query.filter_by(id=invitee_id).first()
-                invitee_name = invitee.first_name + " " + invitee.last_name
-
+                # notify inviter status
+                # Send a notification to inviter
                 if invitation.status == 2:
-                    alert_text = "Your invitation to "+ invitee_name + " is accepted!"
-                    payload = Payload(alert=alert_text, sound="default", badge=1)
-                    apns.gateway_server.send_notification(token_hex, payload)
+                    # notify inviter status
+                    # Send a notification to invitee
+                    invitee_id = invitation.invitee_id
+                    invitee = User.query.filter_by(id=invitee_id).first()
+                    token_hex = invitee.device_id
 
-            result = invitation_schema.dump(Invitation.query.get(invitation.id))
-            return jsonify({"invitation": result.data})
+                    if token_hex:
+                        #get inviter name
+                        inviter_id = invitation.inviter_id
+                        inviter = User.query.filter_by(id=inviter_id).first()
+                        inviter_name = inviter.first_name + " " + inviter.last_name
+
+                        alert_text = "Your got an invitation from " + inviter_name + "!"
+                        payload = Payload(alert=alert_text, sound="default", badge=1)
+                        apns.gateway_server.send_notification(token_hex, payload)
+                        print alert_text
+
+        elif status == 3 or status == 4:
+            invitation_query = Invitation.query.filter_by(id=invitation_id, status=2)
+            if invitation_query.first():
+                invitation = invitation_query.scalar()
+                invitation.status = status
+                invitation.update_time = db.func.now()
+                db.session.commit()
+
+                # notify inviter status
+                # Send a notification to inviter
+                if invitation.status == 3:
+                    inviter_id = invitation.inviter_id
+                    inviter = User.query.filter_by(id=inviter_id).first()
+                    token_hex = inviter.device_id
+
+                    if token_hex:
+                        # get invitee name
+                        invitee_id = invitation.invitee_id
+                        invitee = User.query.filter_by(id=invitee_id).first()
+                        invitee_name = invitee.first_name + " " + invitee.last_name
+
+                        alert_text = "Your invitation to " + invitee_name + " is accepted!"
+                        payload = Payload(alert=alert_text, sound="default", badge=1)
+                        apns.gateway_server.send_notification(token_hex, payload)
+
+                        print alert_text
+
         else:
             return error_serializers('Unknown invitation!', 404), 404
+
+        result = invitation_schema.dump(Invitation.query.get(invitation_id))
+        return jsonify({"invitation": result.data})
+
 
     def get(self, invitation_id):
         invitation = Invitation.query.filter_by(id=invitation_id).first()

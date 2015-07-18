@@ -1,4 +1,5 @@
 import datetime
+import json
 from flask import jsonify
 from flask.ext.restful import reqparse
 import time
@@ -140,13 +141,10 @@ def analysis_tags(user_id, params):
       analysis_a_tag(user_id, "industry", params["industry"])
 
     if params["positions"]:
-      print params["positions"]
-      positions = params["positions"].split()
-      print positions
-      print type(positions)
-      if positions:
-        for position in positions:
-          print position
+      positions = params["positions"].replace("'", '"')
+      all_positions = json.loads(positions.replace('u"', '"'))
+      if all_positions:
+        for position in all_positions:
           if position["company"]:
             analysis_a_tag(user_id, "company", position["company"])
 

@@ -114,7 +114,7 @@ def send_notification(sender_id, user_id):
     # if invitation.create_time > (datetime.datetime.now() + datetime.timedelta(days=1)):
     send = True
     invitation.status = 1
-    invitation.update_time = datetime.time.strftime("%Y-%m-%d %X", datetime.time.localtime())
+    invitation.update_time = db.func.now()
   else:
     send = True
     invitation = Invitation(inviter_id=sender_id, invitee_id=user_id)
@@ -234,7 +234,7 @@ class InvitationView(Resource):
                         inviter = User.query.filter_by(id=inviter_id).first()
                         inviter_name = inviter.first_name + " " + inviter.last_name
 
-                        alert_text = "You got an invitation from " + inviter_name + "!"
+                        alert_text = "You got a chat invitation from " + inviter_name + "!"
                         payload = Payload(alert=alert_text, sound="default", badge=1, custom={'invitationId': invitation.id})
                         apns.gateway_server.send_notification(token_hex, payload)
                         print alert_text

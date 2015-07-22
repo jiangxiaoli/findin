@@ -18,8 +18,8 @@ from apns import APNs, Payload
 # init apns
 from views.user_view import get_location_users
 
-cert_path = os.path.join(os.path.dirname(__file__), '../developmentCert.pem')
-key_path = os.path.join(os.path.dirname(__file__), '../developmentKey.pem')
+cert_path = os.path.join(os.path.dirname(__file__), '../productionCert.pem')
+key_path = os.path.join(os.path.dirname(__file__), '../productionKey.pem')
 apns = APNs(use_sandbox=False, cert_file=cert_path, key_file=key_path)
 
 

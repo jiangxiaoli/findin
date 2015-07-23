@@ -1,9 +1,7 @@
-import datetime
 from models.location import Location
 from models.invitation import Invitation
 from models.subscribe import Subscribe
 from models.user import User, UserTag, Tag
-from schemas.user_schemas import users_with_tags_schema
 from serializers.simgle_general_serializers import error_serializers
 from schemas.invitation_schemas import invitation_schema, invitations_schema
 from schemas.location_schemas import location_schema
@@ -111,7 +109,6 @@ def send_notification(sender_id, user_id):
   invitation = None
   if invitation_query.first():
     invitation = invitation_query.scalar()
-    # if invitation.create_time > (datetime.datetime.now() + datetime.timedelta(days=1)):
     send = True
     invitation.status = 1
     invitation.update_time = db.func.now()
